@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Upload Test</title>
+</head>
+<body>
+    <h1>Upload Multiple Files</h1>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" name="files" id="files" multiple>
+        <button type="button" onclick="uploadFiles()">Upload</button>
+    </form>
+    <div id="response" style="margin-top: 20px; color: green;"></div>
+
+    <h1>Uploaded Files</h1>
+    <button type="button" onclick="fetchFiles()">Fetch Files</button>
+    <ul id="fileList" style="margin-top: 20px;"></ul>
+
+    <script>
+        const uploadFiles = async () => {
+            const form = document.getElementById('uploadForm');
+            const formData = new FormData(form);
+            const responseDiv = document.getElementById('response');
+
+            try {
+                const response = await fetch('http://localhost:3000/upload', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    responseDiv.textContent = data.message;
+                } else {
+                    const error = await response.json();
+                    responseDiv.textContent = error.error || 'Error uploading files.';
+                }
+            } catch (err) {
+                responseDiv.textContent = 'Error: ' + err.message;
+            }
+        };
+
+        const fetchFiles = async () => {
+            const fileList = document.getElementById('fileList');
+            fileList.innerHTML = '';
+
+            try {
+                const response = await fetch('http://localhost:3000/files');
+                if (response.ok) {
+                    const files = await response.json();
+                    files.forEach(file => {
+                        const li = document.createElement('li');
+                        li.textContent = `File Name: ${file.fileName} | Path: ${file.filePath}`;
+                        fileList.appendChild(li);
+                    });
+                } else {
+                    fileList.innerHTML = '<li>Error fetching files.</li>';
+                }
+            } catch (err) {
+                fileList.innerHTML = `<li>Error: ${err.message}</li>`;
+            }
+        };
+    </script>
+</body>
+</html>
